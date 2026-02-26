@@ -171,6 +171,120 @@ Options:
 
 ---
 
+### 第四阶段：合并章节
+
+当所有章节创作完成后，先执行章节合并：
+
+1. **合并所有章节** - 将分散的章节文件合并成一个完整的 markdown 文件：
+
+```bash
+# 进入小说目录
+cd novels/小说名/
+
+# 合并所有章节文件（按文件名排序）
+cat 00-大纲.md 01-人物档案.md 第*.md > 小说名_合并版.md
+
+# 也可以使用 Python 脚本更智能地合并
+python3 << 'EOF'
+import os
+import re
+
+novel_dir = "."
+output_file = f"{os.path.basename(novel_dir)}_合并版.md"
+
+# 定义文件顺序
+priority_files = ["00-大纲.md", "01-人物档案.md"]
+chapter_files = sorted([f for f in os.listdir(novel_dir) if re.match(r"第\d+章", f)])
+
+with open(output_file, "w", encoding="utf-8") as out:
+    # 先写入优先级文件
+    for pf in priority_files:
+        if os.path.exists(pf):
+            with open(pf, "r", encoding="utf-8") as f:
+                out.write(f.read() + "\n\n")
+    
+    # 再写入章节文件
+    for cf in chapter_files:
+        with open(cf, "r", encoding="utf-8") as f:
+            out.write(f.read() + "\n\n")
+
+print(f"已合并到: {output_file}")
+EOF
+```
+
+2. **通知用户** - 章节合并完成
+
+---
+
+### 第五阶段：自动生成封面（可选）
+
+当所有章节创作完成后，自动执行以下步骤：
+
+1. **读取大纲摘要** - 读取 `00-大纲.md` 中的章节摘要，了解小说核心内容
+2. **提取关键元素** - 从摘要中提取：
+   - 小说题材类型
+   - 主角特征
+   - 核心场景/氛围
+   - 故事风格（悲壮/甜蜜/热血/温馨等）
+   - 书名（从文件名或大纲中获取）
+3. **获取作者名和书名** - 从环境变量获取：
+   - `NOVEL_AUTHOR` - 作者名（默认"锦珩不晚"）
+   - `BOOK_TITLE` - 书名（从小说目录名或环境变量获取）
+4. **生成封面图片** - 调用阿里云百炼图片生成API，直接在提示词中包含书名、作者名及详细设计要求：
+
+```bash
+# 读取环境变量
+AUTHOR=${NOVEL_AUTHOR:-"锦珩不晚"}
+BOOK_TITLE=${BOOK_TITLE:-$(basename "$(pwd)")}
+
+# 调用阿里云百炼 API 生成图片
+curl -s -X POST 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $ALIYUN_API_KEY" \
+  -d "{
+    \"model\": \"qwen-image-max\",
+    \"input\": {
+      \"messages\": [{
+        \"role\": \"user\",
+        \"content\": [{
+          \"text\": \"小说封面竖版构图，600*800像素，高品质。${BOOK_TITLE}，作者：${AUTHOR}。【文字部分 - 必须生成】封面顶部三分之一处，用大号华丽艺术字体显示书名《${BOOK_TITLE}》，字体为金色渐变配红色描边，立体浮雕效果，字形飘逸有力，带有轻微发光特效。封面底部中央位置，用优雅行书字体显示作者名${AUTHOR}，字体为深棕色，大小适中，下方配有一枚红色印章图案装饰。<根据小说内容生成的图片描述>，精致唯美，画风精美\"
+        }]
+      }]
+    },
+    \"parameters\": {
+      \"negative_prompt\": \"低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。\",
+      \"prompt_extend\": true,
+      \"watermark\": false,
+      \"size\": \"600*800\"
+    }
+  }"
+```
+
+**提示词示例**：
+```
+小说封面竖版构图，600*800像素，高品质。烬羽行，作者：锦珩不晚。【文字部分 - 必须生成】封面顶部三分之一处，用大号华丽艺术字体显示书名《烬羽行》，字体为金色渐变配红色描边，立体浮雕效果，字形飘逸有力，带有轻微发光特效。封面底部中央位置，用优雅行书字体显示作者名锦珩不晚，字体为深棕色，大小适中，下方配有一枚红色印章图案装饰。亡国公主在废墟中，手持玉佩，血染宫墙，悲壮暗黑奇幻风格，精致唯美，画风精美
+```
+
+5. **保存封面** - 将生成的图片保存到小说目录：
+```bash
+curl -s -X POST ... > 封面.png
+cp 封面.png novels/小说名/封面.png
+```
+
+7. **通知用户** - 告知用户小说和封面都已完成
+
+**环境变量**：
+- `ALIYUN_API_KEY` - 阿里云百炼 API Key（必填）
+- `NOVEL_AUTHOR` - 作者名（默认"锦珩不晚"）
+- `BOOK_TITLE` - 书名（从目录名获取）
+
+**提示词格式**：
+```
+小说封面图片，《书名》，作者：作者名，<小说内容描述>，竖版构图，600*800像素
+```
+
+---
+
 ## 三大黄金法则
 
 1. **展示而非讲述** - 用动作和对话表现，不要直接陈述
