@@ -10,11 +10,47 @@ metadata:
 
 # Chinese Novelist: 中文小说创作助手
 
+## 环境变量配置（推荐方式）
+
+**提前设置环境变量，实现非交互式创作**：
+
+```bash
+# 必填（至少设置主题）
+export NOVEL_TITLE="小说标题"
+
+# 可选（使用默认值）
+export NOVEL_THEME="游戏"                    # 题材：悬疑/言情/奇幻/科幻/武侠/历史/都市
+export NOVEL_MAIN_CHARACTER="男性主角"        # 主角：男性主角/女性主角/双主角/群像戏
+export NOVEL_PERSONALITY="成长逆袭"           # 性格：热血正义/冷静智慧/温暖治愈/高冷孤傲/阴暗腹黑/成长逆袭
+export NOVEL_CONFLICT="成长突破"             # 冲突：生死存亡/查明真相/爱情阻碍/复仇雪恨/权力争夺/成长突破/守护保护
+export NOVEL_CHAPTERS="20"                   # 章节数：10/15/20/30/50
+export NOVEL_AUTHOR="锦珩不晚"                # 作者名（封面用）
+```
+
+**默认值**（未设置环境变量时使用）：
+- 题材：现代言情
+- 主角：男性主角
+- 性格：成长逆袭
+- 冲突：成长突破
+- 章节数：20章
+
+---
+
 ## 核心流程
 
-### 第一阶段：5问确认
+### 第一阶段：读取配置（自动化）
 
-**使用 AskUserQuestion 工具逐一询问用户，每个问题提供选项供用户选择。**
+**检查环境变量**：
+1. 读取 `NOVEL_TITLE` - 小说标题（必填）
+2. 读取 `NOVEL_THEME` - 题材类型（默认：现代言情）
+3. 读取 `NOVEL_MAIN_CHARACTER` - 主角设定（默认：男性主角）
+4. 读取 `NOVEL_PERSONALITY` - 主角性格（默认：成长逆袭）
+5. 读取 `NOVEL_CONFLICT` - 核心冲突（默认：成长突破）
+6. 读取 `NOVEL_CHAPTERS` - 章节数量（默认：20）
+
+**如果环境变量已设置**，跳过交互，直接进入"第二阶段：规划"
+
+**如果环境变量未设置**，执行以下5问确认（最多只问一次）：
 
 ---
 
@@ -107,6 +143,27 @@ Options:
 ---
 
 **5问收集完成后**然后进入"第二阶段：规划"。
+
+---
+
+### 自动检测脚本
+
+```bash
+# 检查环境变量是否已配置
+if [ -n "$NOVEL_TITLE" ]; then
+    echo "检测到环境变量配置，使用自动化模式"
+    # 直接使用环境变量值
+    THEME=${NOVEL_THEME:-"现代言情"}
+    MAIN_CHAR=${NOVEL_MAIN_CHARACTER:-"男性主角"}
+    PERSONALITY=${NOVEL_PERSONALITY:-"成长逆袭"}
+    CONFLICT=${NOVEL_CONFLICT:-"成长突破"}
+    CHAPTERS=${NOVEL_CHAPTERS:-"20"}
+    # 跳过5问，直接进入规划
+else
+    echo "未检测到环境变量，使用交互模式"
+    # 执行5问确认
+fi
+```
 
 ---
 
@@ -307,3 +364,29 @@ python scripts/check_chapter_wordcount.py novels/小说名/第01章.md 3500
 ```
 
 低于3000字的章节必须使用 [content-expansion.md](references/content-expansion.md) 的扩充技巧进行扩充。
+
+---
+
+## OpenClaw 驱动方式
+
+**通过环境变量调用**：
+
+```bash
+# 设置环境变量
+export NOVEL_TITLE="我的新小说"
+export NOVEL_THEME="游戏"
+export NOVEL_MAIN_CHARACTER="男性主角"
+export NOVEL_PERSONALITY="成长逆袭"
+export NOVEL_CONFLICT="成长突破"
+export NOVEL_CHAPTERS="20"
+export NOVEL_AUTHOR="锦珩不晚"
+
+# 调用 Claude Code
+claude --dangerously-skip-permissions "/chinese-novelist"
+```
+
+**或使用一行命令**：
+
+```bash
+NOVEL_TITLE="我的新小说" NOVEL_THEME="游戏" NOVEL_CHAPTERS="20" claude -p --dangerously-skip-permissions "/chinese-novelist"
+```
