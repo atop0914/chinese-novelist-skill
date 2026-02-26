@@ -294,27 +294,27 @@ EOF
 AUTHOR=${NOVEL_AUTHOR:-"锦珩不晚"}
 BOOK_TITLE=${BOOK_TITLE:-$(basename "$(pwd)")}
 
-# 调用阿里云百炼 API 生成图片
+# 调用阿里云百炼 API 生成图片（使用单引号避免JSON解析问题）
 curl -s -X POST 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation' \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $ALIYUN_API_KEY" \
-  -d "{
-    \"model\": \"qwen-image-max\",
-    \"input\": {
-      \"messages\": [{
-        \"role\": \"user\",
-        \"content\": [{
-          \"text\": \"小说封面竖版构图，600*800像素，高品质。${BOOK_TITLE}，作者：${AUTHOR}。【文字部分 - 必须生成】封面顶部三分之一处，用大号华丽艺术字体显示书名《${BOOK_TITLE}》，字体为金色渐变配红色描边，立体浮雕效果，字形飘逸有力，带有轻微发光特效。封面底部中央位置，用优雅行书字体显示作者名${AUTHOR}，字体为深棕色，大小适中，下方配有一枚红色印章图案装饰。<根据小说内容生成的图片描述>，精致唯美，画风精美\"
+  -d '{
+    "model": "qwen-image-max",
+    "input": {
+      "messages": [{
+        "role": "user",
+        "content": [{
+          "text": "小说封面竖版构图,600*800像素。书名:《BOOK_TITLE},作者:AUTHOR。【文字部分】封面顶部书名金色渐变,底部作者名深棕色加印章。<小说内容描述>"
         }]
       }]
     },
-    \"parameters\": {
-      \"negative_prompt\": \"低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。\",
-      \"prompt_extend\": true,
-      \"watermark\": false,
-      \"size\": \"600*800\"
+    "parameters": {
+      "negative_prompt": "低分辨率,低画质,畸形,文字模糊",
+      "prompt_extend": true,
+      "watermark": false,
+      "size": "600*800"
     }
-  }"
+  }'
 ```
 
 **提示词示例**：
