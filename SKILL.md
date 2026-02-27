@@ -24,7 +24,7 @@ export NOVEL_MAIN_CHARACTER="男性主角"        # 主角：男性主角/女性
 export NOVEL_PERSONALITY="成长逆袭"           # 性格：热血正义/冷静智慧/温暖治愈/高冷孤傲/阴暗腹黑/成长逆袭
 export NOVEL_CONFLICT="成长突破"             # 冲突：生死存亡/查明真相/爱情阻碍/复仇雪恨/权力争夺/成长突破/守护保护
 export NOVEL_CHAPTERS="20"                   # 章节数：10/15/20/30/50
-export NOVEL_AUTHOR="锦珩不晚"                # 作者名（封面用）
+export NOVEL_AUTHOR="作者名"                # 作者名（封面用）
 ```
 
 **默认值**（未设置环境变量时使用）：
@@ -299,13 +299,13 @@ EOF
    - 故事风格（悲壮/甜蜜/热血/温馨等）
    - 书名（从文件名或大纲中获取）
 3. **获取作者名和书名** - 从环境变量获取：
-   - `NOVEL_AUTHOR` - 作者名（默认"锦珩不晚"）
+   - `NOVEL_AUTHOR` - 作者名（默认"作者名"）
    - `BOOK_TITLE` - 书名（从小说目录名或环境变量获取）
 4. **生成封面图片** - 调用阿里云百炼图片生成API，直接在提示词中包含书名、作者名及详细设计要求：
 
 ```bash
 # 读取环境变量
-AUTHOR=${NOVEL_AUTHOR:-"锦珩不晚"}
+AUTHOR=${NOVEL_AUTHOR:-"作者名"}
 BOOK_TITLE=${BOOK_TITLE:-$(basename "$(pwd)")}
 
 # 调用阿里云百炼 API 生成图片（使用单引号避免JSON解析问题）
@@ -333,7 +333,7 @@ curl -s -X POST 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-
 
 **提示词示例**：
 ```
-小说封面竖版构图，600*800像素，高品质。烬羽行，作者：锦珩不晚。【文字部分 - 必须生成】封面顶部三分之一处，用大号华丽艺术字体显示书名《烬羽行》，字体为金色渐变配红色描边，立体浮雕效果，字形飘逸有力，带有轻微发光特效。封面底部中央位置，用优雅行书字体显示作者名锦珩不晚，字体为深棕色，大小适中，下方配有一枚红色印章图案装饰。亡国公主在废墟中，手持玉佩，血染宫墙，悲壮暗黑奇幻风格，精致唯美，画风精美
+小说封面竖版构图，600*800像素，高品质。烬羽行，作者：作者名。【文字部分 - 必须生成】封面顶部三分之一处，用大号华丽艺术字体显示书名《烬羽行》，字体为金色渐变配红色描边，立体浮雕效果，字形飘逸有力，带有轻微发光特效。封面底部中央位置，用优雅行书字体显示作者名作者名，字体为深棕色，大小适中，下方配有一枚红色印章图案装饰。亡国公主在废墟中，手持玉佩，血染宫墙，悲壮暗黑奇幻风格，精致唯美，画风精美
 ```
 
 5. **保存封面** - 将生成的图片保存到小说目录：
@@ -346,7 +346,7 @@ cp 封面.png novels/小说名/封面.png
 
 **环境变量**：
 - `ALIYUN_API_KEY` - 阿里云百炼 API Key（必填）
-- `NOVEL_AUTHOR` - 作者名（默认"锦珩不晚"）
+- `NOVEL_AUTHOR` - 作者名（默认"作者名"）
 - `BOOK_TITLE` - 书名（从目录名获取）
 
 **提示词格式**：
@@ -393,7 +393,7 @@ export NOVEL_MAIN_CHARACTER="男性主角"
 export NOVEL_PERSONALITY="成长逆袭"
 export NOVEL_CONFLICT="成长突破"
 export NOVEL_CHAPTERS="20"
-export NOVEL_AUTHOR="锦珩不晚"
+export NOVEL_AUTHOR="作者名"
 
 # 调用 Claude Code
 claude --dangerously-skip-permissions "/chinese-novelist"
